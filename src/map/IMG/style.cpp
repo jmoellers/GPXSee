@@ -516,43 +516,40 @@ static int colors2bpp(quint8 colors, quint8 flags)
 static bool readColorTable(SubFile *file, SubFile::Handle &hdl, QImage& img,
   int colors, int bpp, bool transparent)
 {
-	int i;
-
 	img.setColorCount(colors);
 
 	if (transparent) {
 		quint8 byte;
 		quint32 bits = 0, reg = 0, mask = 0x000000FF;
 
-		for (i = 0; i < colors; i++) {
+		for (int i = 0; i < colors; i++) {
 			while (bits < 28) {
 				if (!file->readByte(hdl, byte))
 					return false;
 
 				mask = 0x000000FF << bits;
-				reg  = reg  & (~mask);
-				reg  = reg  | (byte << bits);
+				reg  = reg & (~mask);
+				reg  = reg | (byte << bits);
 				bits += 8;
 			}
 
 			img.setColor(i, qRgba((reg >> 16) & 0x0FF, (reg >> 8) & 0x0FF,
 			  reg & 0x0FF, ~((reg >> 24) & 0x0F) << 4));
 
-			reg   = reg >> 28;
+			reg = reg >> 28;
 			bits -= 28;
 		}
-		for(; i < 1<<bpp; i++)
+		for (int i = colors; i < 1<<bpp; i++)
 			img.setColor(i, qRgba(0, 0, 0, 0));
 	} else {
-		quint8 r, g, b;
+		QColor color;
 
-		for (i = 0; i < colors; i++) {
-			if (!(file->readByte(hdl, b) && file->readByte(hdl, g)
-			  && file->readByte(hdl, r)))
+		for (int i = 0; i < colors; i++) {
+			if (!readColor(file, hdl, color))
 				return false;
-			img.setColor(i, qRgb(r, g, b));
+			img.setColor(i, color.rgb());
 		}
-		for(; i < 1<<bpp; i++)
+		for (int i = colors; i < 1<<bpp; i++)
 			img.setColor(i, qRgba(0, 0, 0, 0));
 	}
 
