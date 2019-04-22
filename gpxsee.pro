@@ -163,7 +163,17 @@ HEADERS += src/common/config.h \
     src/map/calibrationpoint.h \
     src/map/color.h \
     src/data/exifparser.h \
-    src/data/imageinfo.h
+    src/data/imageinfo.h \
+    src/map/imgmap.h \
+    src/map/IMG/img.h \
+    src/map/IMG/subfile.h \
+    src/map/IMG/trefile.h \
+    src/map/IMG/rgnfile.h \
+    src/map/IMG/lblfile.h \
+    src/map/IMG/vectortile.h \
+    src/map/IMG/subdiv.h \
+    src/map/IMG/units.h \
+    src/map/IMG/style.h
 SOURCES += src/main.cpp \
     src/common/coordinates.cpp \
     src/common/rectc.cpp \
@@ -280,7 +290,16 @@ SOURCES += src/main.cpp \
     src/map/obliquestereographic.cpp \
     src/GUI/coordinatesitem.cpp \
     src/map/rmap.cpp \
-    src/data/exifparser.cpp
+    src/data/exifparser.cpp \
+    src/map/imgmap.cpp \
+    src/map/IMG/img.cpp \
+    src/map/IMG/subfile.cpp \
+    src/map/IMG/trefile.cpp \
+    src/map/IMG/rgnfile.cpp \
+    src/map/IMG/lblfile.cpp \
+    src/map/IMG/vectortile.cpp \
+    src/map/IMG/subdiv.cpp \
+    src/map/IMG/style.cpp
 
 greaterThan(QT_MAJOR_VERSION, 4) {
     HEADERS += src/data/geojsonparser.h

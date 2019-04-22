@@ -2,12 +2,12 @@
 #include <QDir>
 #include "atlas.h"
 #include "ozimap.h"
-#include "onlinemap.h"
 #include "jnxmap.h"
 #include "geotiffmap.h"
 #include "mapsource.h"
 #include "mbtilesmap.h"
 #include "rmap.h"
+#include "imgmap.h"
 #include "maplist.h"
 
 
@@ -61,6 +61,8 @@ bool MapList::loadFile(const QString &path, bool *atlas, bool dir)
 		map = new MBTilesMap(path, this);
 	else if (suffix == "rmap" || suffix == "rtmap")
 		map = new RMap(path, this);
+	else if (suffix == "img")
+		map = new IMGMap(path, this);
 	else
 		map = new OziMap(path, this);
 
@@ -117,8 +119,9 @@ QString MapList::formats()
 {
 	return
 	  tr("Supported files")
-	  + " (*.jnx *.map *.mbtiles *.rmap *.rtmap *.tar *.tba *.tif *.tiff *.xml);;"
+	  + " (*.img *.jnx *.map *.mbtiles *.rmap *.rtmap *.tar *.tba *.tif *.tiff *.xml);;"
 	  + tr("MBTiles maps") + " (*.mbtiles);;"
+	  + tr("Garmin IMG maps") + " (*.img);;"
 	  + tr("Garmin JNX maps") + " (*.jnx);;"
 	  + tr("OziExplorer maps") + " (*.map);;"
 	  + tr("TrekBuddy maps/atlases") + " (*.tar *.tba);;"
@@ -130,7 +133,7 @@ QString MapList::formats()
 QStringList MapList::filter()
 {
 	QStringList filter;
-	filter << "*.jnx" << "*.map" << "*.tba" << "*.tar" << "*.xml" << "*.tif"
-	  << "*.tiff" << "*.mbtiles" << "*.rmap";
+	filter << "*.img" << "*.jnx" << "*.map" << "*.tba" << "*.tar" << "*.xml"
+	  << "*.tif" << "*.tiff" << "*.mbtiles" << "*.rmap" << "*.rtmap" << "*.img";
 	return filter;
 }
