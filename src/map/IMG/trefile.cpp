@@ -204,7 +204,7 @@ bool TREFile::init()
 			min[1] = s->bounds().bottom();
 			max[0] = s->bounds().right();
 			max[1] = s->bounds().top();
-			_subdivs.last()->Insert(min, max, s);
+			_subdivs[ml.at(i).bits]->Insert(min, max, s);
 		}
 	}
 
