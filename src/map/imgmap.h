@@ -2,6 +2,8 @@
 #define IMGMAP_H
 
 #include "map.h"
+#include "projection.h"
+#include "transform.h"
 #include "common/range.h"
 #include "IMG/img.h"
 
@@ -31,11 +33,10 @@ public:
 	bool isValid() const {return _valid;}
 	QString errorString() const {return _errorString;}
 
-
-
 private:
 	friend class RasterTile;
 
+	void updateTransform();
 	void drawBitmapLine(QPainter *painter, const QPolygonF &line,
 	  const QImage &img);
 	void drawPolygons(QPainter *painter, const QList<IMG::Poly> &polygons);
@@ -45,6 +46,8 @@ private:
 	QString _fileName;
 	IMG _img;
 	int _zoom;
+	Projection _projection;
+	Transform _transform;
 
 	bool _valid;
 	QString _errorString;

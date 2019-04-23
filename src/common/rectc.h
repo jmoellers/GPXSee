@@ -28,6 +28,11 @@ public:
 	double left() const {return _tl.lon();}
 	double right() const {return _br.lon();}
 
+	void setLeft(double val) {_tl.rlon() = val;}
+	void setRight(double val) {_br.rlon() = val;}
+	void setTop(double val) {_tl.rlat() = val;}
+	void setBottom(double val) {_br.rlat() = val;}
+
 	RectC operator|(const RectC &r) const;
 	RectC &operator|=(const RectC &r) {*this = *this | r; return *this;}
 	RectC operator&(const RectC &r) const;

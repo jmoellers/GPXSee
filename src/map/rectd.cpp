@@ -26,6 +26,27 @@ static void growRect(const Projection &proj, const Coordinates &c, RectD &rect)
 	}
 }
 
+static void growRect(const Projection &proj, const PointD &p, RectC &rect)
+{
+	if (p.isNull())
+		return;
+
+	Coordinates c(proj.xy2ll(p));
+
+	if (rect.isNull())
+		rect = RectC(c, c);
+	else {
+		if (c.lon() < rect.left())
+			rect.setLeft(c.lon());
+		if (c.lon() > rect.right())
+			rect.setRight(c.lon());
+		if (c.lat() < rect.bottom())
+			rect.setBottom(c.lat());
+		if (c.lat() > rect.top())
+			rect.setTop(c.lat());
+	}
+}
+
 RectD::RectD(const RectC &rect, const Projection &proj)
 {
 	RectD prect;
@@ -50,4 +71,30 @@ RectD::RectD(const RectC &rect, const Projection &proj)
 	}
 
 	*this = prect;
+}
+
+RectC RectD::toRectC(const Projection &proj) const
+{
+	RectC ret;
+	double dx = (right() - left()) / SAMPLE_POINTS;
+	double dy = (top() - bottom()) / SAMPLE_POINTS;
+
+	growRect(proj, topLeft(), ret);
+
+	if (dx > 0) {
+		for (int i = 0; i <= SAMPLE_POINTS; i++) {
+			double x = left() + i * dx;
+			growRect(proj, PointD(x, bottom()), ret);
+			growRect(proj, PointD(x, top()), ret);
+		}
+	}
+	if (dy > 0) {
+		for (int i = 0; i <= SAMPLE_POINTS; i++ ) {
+			double y = bottom() + i * dy;
+			growRect(proj, PointD(left(), y), ret);
+			growRect(proj, PointD(right(), y), ret);
+		}
+	}
+
+	return ret;
 }

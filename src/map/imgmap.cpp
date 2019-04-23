@@ -8,7 +8,8 @@
 #endif // QT_VERSION < 5
 #include "common/rectc.h"
 #include "common/wgs84.h"
-#include "osm.h"
+#include "pcs.h"
+#include "rectd.h"
 #include "imgmap.h"
 
 
@@ -54,20 +55,24 @@ private:
 
 
 IMGMap::IMGMap(const QString &fileName, QObject *parent)
-  : Map(parent), _fileName(fileName), _img(fileName), _zoom(0), _valid(false)
+  : Map(parent), _fileName(fileName), _img(fileName), _zoom(0),
+  _projection(PCS::pcs(3857)), _valid(false)
 {
 	if (!_img.isValid()) {
 		_errorString = _img.errorString();
 		return;
 	}
 
+	updateTransform();
+
 	_valid = true;
 }
 
 QRectF IMGMap::bounds()
 {
-	return QRectF(ll2xy(_img.bounds().topLeft()),
-	  ll2xy(_img.bounds().bottomRight()));
+	RectD prect(_img.bounds(), _projection);
+	return QRectF(_transform.proj2img(prect.topLeft()),
+	  _transform.proj2img(prect.bottomRight()));
 }
 
 int IMGMap::zoomFit(const QSize &size, const RectC &rect)
@@ -86,39 +91,46 @@ int IMGMap::zoomFit(const QSize &size, const RectC &rect)
 	} else
 		_zoom = _img.bits().size() - 1;
 
+	updateTransform();
+
 	return _zoom;
 }
 
 int IMGMap::zoomIn()
 {
 	_zoom = qMin(_zoom + 1, _img.bits().size() - 1);
+	updateTransform();
 	return _zoom;
 }
 
 int IMGMap::zoomOut()
 {
 	_zoom = qMax(_zoom - 1, 0);
+	updateTransform();
 	return _zoom;
 }
 
 static inline double bits2scale(int bits)
 {
-	return ((quint32)1<<bits) / 360.0;
+	return (2.0 * M_PI * WGS84_RADIUS) / (1<<bits);
+}
+
+void IMGMap::updateTransform()
+{
+	double scale = bits2scale(_img.bits().at(_zoom));
+	PointD topLeft(_projection.ll2xy(_img.bounds().topLeft()));
+	_transform = Transform(ReferencePoint(PointD(0, 0), topLeft),
+	  PointD(scale, scale));
 }
 
 QPointF IMGMap::ll2xy(const Coordinates &c)
 {
-	qreal scale = bits2scale(_img.bits().at(_zoom));
-//	return QPointF(c.lon() * scale, -c.lat() * scale);
-	QPointF m = OSM::ll2m(c);
-	return QPointF(m.x() * scale, m.y() * -scale);
+	return _transform.proj2img(_projection.ll2xy(c));
 }
 
 Coordinates IMGMap::xy2ll(const QPointF &p)
 {
-	qreal scale = bits2scale(_img.bits().at(_zoom));
-//	return Coordinates(p.x() / scale, -p.y() / scale);
-	return OSM::m2ll(QPointF(p.x() / scale, -p.y() / scale));
+	return _projection.xy2ll(_transform.img2proj(p));
 }
 
 
@@ -259,10 +271,9 @@ void IMGMap::draw(QPainter *painter, const QRectF &rect, Flags flags)
 			else {
 				tiles.append(RasterTile(this, ttl, key));
 				RasterTile &tile = tiles.last();
-				Coordinates ptl(xy2ll(ttl));
-				Coordinates pbr(xy2ll(QPointF(ttl.x() + TILE_SIZE,
-				  ttl.y() + TILE_SIZE)));
-				_img.objects(RectC(ptl, pbr), _img.bits().at(_zoom),
+				RectD prect(_transform.img2proj(ttl), _transform.img2proj(
+				  QPointF(ttl.x() + TILE_SIZE, ttl.y() + TILE_SIZE)));
+				_img.objects(prect.toRectC(_projection), _img.bits().at(_zoom),
 				  tile.polygons(), tile.lines(), tile.points());
 			}
 		}
@@ -286,8 +297,10 @@ void IMGMap::draw(QPainter *painter, const QRectF &rect, Flags flags)
 	QList<IMG::Poly> polygons, lines;
 	QList<IMG::Point> points;
 
-	_img.objects(RectC(xy2ll(rect.topLeft()), xy2ll(rect.bottomRight())),
-	  _img.bits().at(_zoom), polygons, lines, points);
+	RectD prect(_transform.img2proj(rect.topLeft()), _transform.img2proj(
+	  rect.bottomRight()));
+	_img.objects(prect.toRectC(_projection), _img.bits().at(_zoom), polygons,
+	  lines, points);
 
 	painter->setRenderHint(QPainter::SmoothPixmapTransform);
 	drawPolygons(painter, polygons);

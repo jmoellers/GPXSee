@@ -37,6 +37,8 @@ public:
 	bool isNull() const {return _tl.isNull() && _br.isNull();}
 	bool isValid() const {return !(_tl.isNull() || _br.isNull());}
 
+	RectC toRectC(const Projection &proj) const;
+
 private:
 	PointD _tl, _br;
 };
