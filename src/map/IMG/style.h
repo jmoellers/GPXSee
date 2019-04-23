@@ -4,6 +4,7 @@
 #include <QPen>
 #include <QBrush>
 #include <QDebug>
+#include <QTextCodec>
 #include "subfile.h"
 
 
@@ -16,7 +17,6 @@ public:
 		Polygon(const QPen &pen, const QBrush &brush)
 		  : _pen(pen), _brush(brush) {}
 
-		bool isNull() const {return _pen == Qt::NoPen && _brush == Qt::NoBrush;}
 		const QPen &pen() const {return _pen;}
 		const QBrush &brush() const {return _brush;}
 
@@ -61,6 +61,7 @@ public:
 	const Polygon &polygon(quint8 type) const;
 	const Point &point(quint8 type, quint8 subtype) const;
 	const QList<quint8> &drawOrder() const {return _drawOrder;}
+	const QTextCodec *codec() const {return _codec;}
 
 private:
 	struct Section {
@@ -95,6 +96,7 @@ private:
 	QMap<quint8, Polygon> _polygons;
 	QMap<quint16, Point> _points;
 	QList<quint8> _drawOrder;
+	QTextCodec *_codec;
 };
 
 #ifndef QT_NO_DEBUG

@@ -44,7 +44,7 @@ bool LBLFile::init()
 	return true;
 }
 
-QString LBLFile::label6b(quint32 offset) const
+QByteArray LBLFile::label6b(quint32 offset) const
 {
 	Handle hdl;
 	QByteArray result;
@@ -52,17 +52,17 @@ QString LBLFile::label6b(quint32 offset) const
 	quint8 b1, b2, b3;
 
 	if (!seek(hdl, offset))
-		return QString();
+		return QByteArray();
 
 	while (true) {
 		if (!(readByte(hdl, b1) && readByte(hdl, b2) && readByte(hdl, b3)))
-			return QString();
+			return QByteArray();
 
 		int c[]= {b1>>2, (b1&0x3)<<4|b2>>4, (b2&0xF)<<2|b3>>6, b3&0x3F};
 
 		for (int cpt = 0; cpt < 4; cpt++) {
 			if (c[cpt] > 0x2F)
-				return QString::fromLatin1(result);
+				return result;
 			switch (curCharSet) {
 				case Normal:
 					if (c[cpt] == 0x1c)
@@ -91,30 +91,30 @@ QString LBLFile::label6b(quint32 offset) const
 	}
 }
 
-QString LBLFile::label8b(quint32 offset) const
+QByteArray LBLFile::label8b(quint32 offset) const
 {
 	Handle hdl;
 	QByteArray result;
 	quint8 c;
 
 	if (!seek(hdl, offset))
-		return QString();
+		return QByteArray();
 
 	while (true) {
 		if (!readByte(hdl, c))
-			return QString();
+			return QByteArray();
 		if (!c)
 			break;
 		result.append(c);
 	}
 
-	return QString::fromLatin1(result);
+	return result;
 }
 
-QString LBLFile::label(quint32 offset) const
+QByteArray LBLFile::label(quint32 offset) const
 {
 	if (offset * _multiplier >= _size)
-		return QString();
+		return QByteArray();
 
 	switch (_encoding) {
 		case 6:
@@ -122,6 +122,6 @@ QString LBLFile::label(quint32 offset) const
 		case 9:
 			return label8b(_offset + offset * _multiplier);
 		default:
-			return QString();
+			return QByteArray();
 	}
 }

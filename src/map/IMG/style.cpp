@@ -610,9 +610,10 @@ bool Style::parseTYPFile(SubFile *file)
 {
 	SubFile::Handle hdl;
 	Section points, lines, polygons, order;
-	quint16 tmp16;
+	quint16 tmp16, codepage;
 
-	if (!(file->seek(hdl, 0x17) && file->readUInt32(hdl, points.offset)
+	if (!(file->seek(hdl, 0x15) && file->readUInt16(hdl, codepage)
+	  && file->readUInt32(hdl, points.offset)
 	  && file->readUInt32(hdl, points.size)
 	  && file->readUInt32(hdl, lines.offset)
 	  && file->readUInt32(hdl, lines.size)
@@ -637,8 +638,14 @@ bool Style::parseTYPFile(SubFile *file)
 	  && file->readUInt32(hdl, order.arraySize)))
 		return false;
 
-	return parsePoints(file, hdl, points) && parseLines(file, hdl, lines)
-	  && parsePolygons(file, hdl, polygons) && parseDrawOrder(file, hdl, order);
+	if (!(parsePoints(file, hdl, points) && parseLines(file, hdl, lines)
+	  && parsePolygons(file, hdl, polygons) && parseDrawOrder(file, hdl, order)))
+		return false;
+
+	_codec = (codepage == 65001) ? QTextCodec::codecForName("UTF-8")
+	  : QTextCodec::codecForName(QString("CP%1").arg(codepage).toLatin1());
+
+	return true;
 }
 
 Style::Style(SubFile *typ)
@@ -646,6 +653,7 @@ Style::Style(SubFile *typ)
 	if (!(typ && parseTYPFile(typ))) {
 		defaultLineStyle();
 		defaultPolygonStyle();
+		_codec = QTextCodec::codecForName("CP1252");
 	}
 }
 
@@ -684,7 +692,7 @@ QDebug operator<<(QDebug dbg, const Style::Polygon &polygon)
 QDebug operator<<(QDebug dbg, const Style::Line &line)
 {
 	dbg.nospace() << "Line(" << line.foreground() << ", " << line.background()
-	  << ", " << line.img() << ")";
+	  << ", " << line.img().isNull() << ")";
 	return dbg.space();
 }
 #endif // QT_NO_DEBUG

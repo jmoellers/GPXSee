@@ -10,11 +10,11 @@ public:
 
 	bool init();
 
-	QString label(quint32 offset) const;
+	QByteArray label(quint32 offset) const;
 
 private:
-	QString label6b(quint32 offset) const;
-	QString label8b(quint32 offset) const;
+	QByteArray label6b(quint32 offset) const;
+	QByteArray label8b(quint32 offset) const;
 
 	quint32 _offset;
 	quint32 _size;

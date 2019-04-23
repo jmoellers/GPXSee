@@ -220,12 +220,14 @@ void IMGMap::drawPoints(QPainter *painter, const QList<IMG::Point> &points)
 		const IMG::Point &p = points.at(i);
 		QPointF xy(ll2xy(p.coordinates));
 		const Style::Point &style = _img.style().point(p.type, p.subtype);
+		const QTextCodec *codec = _img.style().codec();
 
 		painter->setPen(Qt::darkGray);
 		if (!style.img().isNull())
 			painter->drawImage(xy, style.img());
 		if (!p.poi)
-			painter->drawText(xy, points.at(i).label);
+			painter->drawText(xy, codec ? codec->toUnicode(points.at(i).label)
+			  : QString::fromLatin1(points.at(i).label));
 	}
 }
 

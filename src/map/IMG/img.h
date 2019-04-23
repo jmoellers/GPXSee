@@ -18,7 +18,7 @@ class IMG
 public:
 	struct Poly {
 		QVector<Coordinates> points;
-		QString label;
+		QByteArray label;
 		quint8 type;
 
 		bool operator<(const Poly &other) const
@@ -27,7 +27,7 @@ public:
 
 	struct Point {
 		Coordinates coordinates;
-		QString label;
+		QByteArray label;
 		quint8 type, subtype;
 		bool poi;
 	};
