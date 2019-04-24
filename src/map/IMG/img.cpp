@@ -169,7 +169,15 @@ static bool cb(VectorTile *tile, void *context)
 void IMG::objects(const RectC &rect, int bits, QList<Poly> &polygons,
   QList<Poly> &lines, QList<Point> &points) const
 {
-	CTX ctx(rect, bits, polygons, lines, points);
+	int mb = _bits.first();
+	for (int i = 0; i < _bits.size(); i++) {
+		if (_bits.at(i) > bits)
+			break;
+		else
+			mb = _bits.at(i);
+	}
+
+	CTX ctx(rect, mb, polygons, lines, points);
 	double min[2], max[2];
 
 	min[0] = rect.left();

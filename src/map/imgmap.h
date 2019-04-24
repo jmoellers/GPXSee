@@ -46,13 +46,12 @@ private:
 	QString _fileName;
 	IMG _img;
 	int _zoom;
+	Range _zooms;
 	Projection _projection;
 	Transform _transform;
 
 	bool _valid;
 	QString _errorString;
-
-	static QList<int> bits;
 };
 
 #endif // IMGMAP_H

@@ -15,6 +15,12 @@
 
 #define TILE_SIZE 256
 
+static inline double bits2scale(int bits)
+{
+	return (2.0 * M_PI * WGS84_RADIUS) / (1<<bits);
+}
+
+
 class RasterTile {
 public:
 	RasterTile() : _map(0) {}
@@ -55,13 +61,16 @@ private:
 
 
 IMGMap::IMGMap(const QString &fileName, QObject *parent)
-  : Map(parent), _fileName(fileName), _img(fileName), _zoom(0),
+  : Map(parent), _fileName(fileName), _img(fileName),
   _projection(PCS::pcs(3857)), _valid(false)
 {
 	if (!_img.isValid()) {
 		_errorString = _img.errorString();
 		return;
 	}
+
+	_zooms = Range(_img.zooms().min() - 1, 28);
+	_zoom = _zooms.min();
 
 	updateTransform();
 
@@ -82,14 +91,14 @@ int IMGMap::zoomFit(const QSize &size, const RectC &rect)
 		  (rect.top() - rect.bottom()) / size.height());
 		double resolution = qMax(qAbs(sc.x()), qAbs(sc.y()));
 
-		_zoom = 0;
-		for (int i = 0; i < _img.bits().size(); i++) {
-			if (360.0 / (1<<_img.bits().at(i)) < resolution)
+		_zoom = _zooms.min();
+		for (int i = _zooms.min(); i <= _zooms.max(); i++) {
+			if (360.0 / (1<<i) < resolution)
 				break;
 			_zoom = i;
 		}
 	} else
-		_zoom = _img.bits().size() - 1;
+		_zoom = _zooms.max();
 
 	updateTransform();
 
@@ -98,26 +107,21 @@ int IMGMap::zoomFit(const QSize &size, const RectC &rect)
 
 int IMGMap::zoomIn()
 {
-	_zoom = qMin(_zoom + 1, _img.bits().size() - 1);
+	_zoom = qMin(_zoom + 1, _zooms.max());
 	updateTransform();
 	return _zoom;
 }
 
 int IMGMap::zoomOut()
 {
-	_zoom = qMax(_zoom - 1, 0);
+	_zoom = qMax(_zoom - 1, _zooms.min());
 	updateTransform();
 	return _zoom;
 }
 
-static inline double bits2scale(int bits)
-{
-	return (2.0 * M_PI * WGS84_RADIUS) / (1<<bits);
-}
-
 void IMGMap::updateTransform()
 {
-	double scale = bits2scale(_img.bits().at(_zoom));
+	double scale = bits2scale(_zoom);
 	PointD topLeft(_projection.ll2xy(_img.bounds().topLeft()));
 	_transform = Transform(ReferencePoint(PointD(0, 0), topLeft),
 	  PointD(scale, scale));
@@ -273,7 +277,7 @@ void IMGMap::draw(QPainter *painter, const QRectF &rect, Flags flags)
 				RasterTile &tile = tiles.last();
 				RectD prect(_transform.img2proj(ttl), _transform.img2proj(
 				  QPointF(ttl.x() + TILE_SIZE, ttl.y() + TILE_SIZE)));
-				_img.objects(prect.toRectC(_projection), _img.bits().at(_zoom),
+				_img.objects(prect.toRectC(_projection), _zoom,
 				  tile.polygons(), tile.lines(), tile.points());
 			}
 		}
@@ -299,7 +303,7 @@ void IMGMap::draw(QPainter *painter, const QRectF &rect, Flags flags)
 
 	RectD prect(_transform.img2proj(rect.topLeft()), _transform.img2proj(
 	  rect.bottomRight()));
-	_img.objects(prect.toRectC(_projection), _img.bits().at(_zoom), polygons,
+	_img.objects(prect.toRectC(_projection), _zoom, polygons,
 	  lines, points);
 
 	painter->setRenderHint(QPainter::SmoothPixmapTransform);

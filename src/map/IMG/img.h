@@ -8,6 +8,7 @@
 #include <QDebug>
 #include "common/rtree.h"
 #include "common/rectc.h"
+#include "common/range.h"
 #include "style.h"
 
 class VectorTile;
@@ -38,7 +39,7 @@ public:
 
 	const QString &name() const {return _name;}
 	const RectC &bounds() const {return _bounds;}
-	QList<int> bits() const {return _bits;}
+	Range zooms() const {return Range(_bits.first(), _bits.last());}
 
 	bool isValid() const {return _valid;}
 	const QString &errorString() const {return _errorString;}
