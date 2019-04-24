@@ -43,8 +43,8 @@ bool VectorTile::init()
 }
 
 void VectorTile::objects(const RectC &rect, int bits,
-  QList<IMG::Poly> &polygons, QList<IMG::Poly> &lines,
-  QList<IMG::Point> &points) const
+  QList<IMG::Poly> *polygons, QList<IMG::Poly> *lines,
+  QList<IMG::Point> *points) const
 {
 	QList<SubDiv*> subdivs = _tre->subdivs(rect, bits);
 	for (int i = 0; i < subdivs.size(); i++)

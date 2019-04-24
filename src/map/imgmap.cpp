@@ -13,13 +13,8 @@
 #include "imgmap.h"
 
 
-#define TILE_SIZE 256
-
-static inline double bits2scale(int bits)
-{
-	return (2.0 * M_PI * WGS84_RADIUS) / (1<<bits);
-}
-
+#define TILE_SIZE 512
+#define EXTENT 128
 
 class RasterTile {
 public:
@@ -117,6 +112,11 @@ int IMGMap::zoomOut()
 	_zoom = qMax(_zoom - 1, _zooms.min());
 	updateTransform();
 	return _zoom;
+}
+
+static inline double bits2scale(int bits)
+{
+	return (2.0 * M_PI * WGS84_RADIUS) / (1<<bits);
 }
 
 void IMGMap::updateTransform()
@@ -230,20 +230,58 @@ void IMGMap::drawLines(QPainter *painter, QList<IMG::Poly> &lines)
 	}
 }
 
+#define FLAGS (Qt::AlignCenter | Qt::TextWordWrap | Qt::TextDontClip)
+
+static QRectF textRect(const QString &text, const QFont &font, int maxWidth)
+{
+	QFontMetrics fm(font);
+	int limit = font.pixelSize() * maxWidth;
+	return fm.boundingRect(QRect(0, 0, limit, 0), FLAGS, text);
+}
+
+static void drawText(QPainter *painter, const QPointF &pos, const QString &text)
+{
+	QRectF tr(textRect(text, painter->font(), 8));
+
+	painter->setPen(Qt::white);
+	tr.moveCenter(QPointF(pos.x()-1, pos.y()-1));
+	painter->drawText(tr, FLAGS, text);
+	tr.moveCenter(QPointF(pos.x()+1, pos.y()+1));
+	painter->drawText(tr, FLAGS, text);
+	tr.moveCenter(QPointF(pos.x()-1, pos.y()+1));
+	painter->drawText(tr, FLAGS, text);
+	tr.moveCenter(QPointF(pos.x()+1, pos.y()-1));
+	painter->drawText(tr, FLAGS, text);
+
+	painter->setPen(Qt::black);
+	tr.moveCenter(pos);
+	painter->drawText(tr, FLAGS, text);
+}
+
 void IMGMap::drawPoints(QPainter *painter, const QList<IMG::Point> &points)
 {
+	QFont font(painter->font());
+	font.setPixelSize(16);
+
+	painter->setFont(font);
+	const QTextCodec *codec = _img.style().codec();
+
 	for (int i = 0; i < points.size(); i++) {
 		const IMG::Point &p = points.at(i);
-		QPointF xy(ll2xy(p.coordinates));
 		const Style::Point &style = _img.style().point(p.type, p.subtype);
-		const QTextCodec *codec = _img.style().codec();
 
-		painter->setPen(Qt::darkGray);
 		if (!style.img().isNull())
-			painter->drawImage(xy, style.img());
-		if (!p.poi)
-			painter->drawText(xy, codec ? codec->toUnicode(points.at(i).label)
-			  : QString::fromLatin1(points.at(i).label));
+			painter->drawImage(ll2xy(p.coordinates), style.img());
+	}
+
+	for (int i = 0; i < points.size(); i++) {
+		const IMG::Point &p = points.at(i);
+
+		if (!p.poi && !p.label.isNull()) {
+			QString text(codec ? codec->toUnicode(p.label)
+			  : QString::fromLatin1(p.label));
+			drawText(painter, ll2xy(p.coordinates), text);
+		}
 	}
 }
 
@@ -275,10 +313,15 @@ void IMGMap::draw(QPainter *painter, const QRectF &rect, Flags flags)
 			else {
 				tiles.append(RasterTile(this, ttl, key));
 				RasterTile &tile = tiles.last();
-				RectD prect(_transform.img2proj(ttl), _transform.img2proj(
+				RectD polyRect(_transform.img2proj(ttl), _transform.img2proj(
 				  QPointF(ttl.x() + TILE_SIZE, ttl.y() + TILE_SIZE)));
-				_img.objects(prect.toRectC(_projection), _zoom,
-				  tile.polygons(), tile.lines(), tile.points());
+				_img.objects(polyRect.toRectC(_projection, 4), _zoom,
+				  &(tile.polygons()), &(tile.lines()), 0);
+				RectD pointRect(_transform.img2proj(QPointF(ttl.x() - EXTENT,
+				  ttl.y() - EXTENT)), _transform.img2proj(QPointF(ttl.x()
+				  + TILE_SIZE + EXTENT, ttl.y() + TILE_SIZE + EXTENT)));
+				_img.objects(pointRect.toRectC(_projection, 4), _zoom,
+				  0, 0, &(tile.points()));
 			}
 		}
 	}

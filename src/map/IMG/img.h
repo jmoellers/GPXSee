@@ -44,8 +44,8 @@ public:
 	bool isValid() const {return _valid;}
 	const QString &errorString() const {return _errorString;}
 
-	void objects(const RectC &rect, int bits, QList<Poly> &polygons,
-	  QList<Poly> &lines, QList<Point> &points) const;
+	void objects(const RectC &rect, int bits, QList<Poly> *polygons,
+	  QList<Poly> *lines, QList<Point> *points) const;
 
 	const Style &style() const {return _style;}
 

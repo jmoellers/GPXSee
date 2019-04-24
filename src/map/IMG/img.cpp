@@ -11,16 +11,16 @@
 	}
 
 struct CTX {
-	CTX(const RectC &rect, int bits, QList<IMG::Poly> &polygons,
-	  QList<IMG::Poly> &lines, QList<IMG::Point> &points)
+	CTX(const RectC &rect, int bits, QList<IMG::Poly> *polygons,
+	  QList<IMG::Poly> *lines, QList<IMG::Point> *points)
 	  : rect(rect), bits(bits), polygons(polygons), lines(lines),
 	  points(points) {}
 
 	const RectC &rect;
 	int bits;
-	QList<IMG::Poly> &polygons;
-	QList<IMG::Poly> &lines;
-	QList<IMG::Point> &points;
+	QList<IMG::Poly> *polygons;
+	QList<IMG::Poly> *lines;
+	QList<IMG::Point> *points;
 };
 
 IMG::IMG(const QString &fileName) : _file(fileName), _valid(false)
@@ -166,8 +166,8 @@ static bool cb(VectorTile *tile, void *context)
 	return true;
 }
 
-void IMG::objects(const RectC &rect, int bits, QList<Poly> &polygons,
-  QList<Poly> &lines, QList<Point> &points) const
+void IMG::objects(const RectC &rect, int bits, QList<Poly> *polygons,
+  QList<Poly> *lines, QList<Point> *points) const
 {
 	int mb = _bits.first();
 	for (int i = 0; i < _bits.size(); i++) {

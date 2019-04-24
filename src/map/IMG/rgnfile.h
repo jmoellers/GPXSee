@@ -17,8 +17,8 @@ public:
 	bool init(const TREFile *tre, const LBLFile *lbl);
 
 	void objects(const RectC &rect, const SubDiv *subdiv,
-	  QList<IMG::Poly> &polygons, QList<IMG::Poly> &lines,
-	  QList<IMG::Point> &points) const;
+	  QList<IMG::Poly> *polygons, QList<IMG::Poly> *lines,
+	  QList<IMG::Point> *points) const;
 
 private:
 	class Segment {
@@ -69,9 +69,9 @@ private:
 
 	QVector<Segment> segments(Handle &hdl, const SubDiv *subdiv) const;
 	bool polyObjects(const RectC &rect, Handle &hdl, const SubDiv *subdiv,
-	  const Segment &segment, QList<IMG::Poly> &polys) const;
+	  const Segment &segment, QList<IMG::Poly> *polys) const;
 	bool pointObjects(const RectC &rect, Handle &hdl, const SubDiv *subdiv,
-	  const Segment &segment, QList<IMG::Point> &points) const;
+	  const Segment &segment, QList<IMG::Point> *points) const;
 
 	friend QDebug operator<<(QDebug dbg, const RGNFile::Segment &segment);
 

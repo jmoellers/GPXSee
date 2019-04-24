@@ -21,8 +21,8 @@ public:
 	SubFile *file(SubFile::Type type);
 	SubFile *addFile(SubFile::Type type, quint32 size);
 
-	void objects(const RectC &rect, int bits, QList<IMG::Poly> &polygons,
-	  QList<IMG::Poly> &lines, QList<IMG::Point> &points) const;
+	void objects(const RectC &rect, int bits, QList<IMG::Poly> *polygons,
+	  QList<IMG::Poly> *lines, QList<IMG::Point> *points) const;
 
 	friend QDebug operator<<(QDebug dbg, const VectorTile &tile);
 

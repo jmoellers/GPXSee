@@ -12,7 +12,7 @@ public:
 	RectD() {}
 	RectD(const PointD &topLeft, const PointD &bottomRight)
 	  : _tl(topLeft), _br(bottomRight) {}
-	RectD(const RectC &rect, const Projection &proj);
+	RectD(const RectC &rect, const Projection &proj, int samples = 100);
 
 	PointD topLeft() const {return _tl;}
 	PointD bottomRight() const {return _br;}
@@ -37,7 +37,7 @@ public:
 	bool isNull() const {return _tl.isNull() && _br.isNull();}
 	bool isValid() const {return !(_tl.isNull() || _br.isNull());}
 
-	RectC toRectC(const Projection &proj) const;
+	RectC toRectC(const Projection &proj, int samples = 100) const;
 
 private:
 	PointD _tl, _br;

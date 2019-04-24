@@ -130,7 +130,7 @@ int RGNFile::bitSize(quint8 baseSize, bool variableSign, bool extraBit)
 }
 
 bool RGNFile::polyObjects(const RectC &rect, Handle &hdl, const SubDiv *subdiv,
-  const Segment &segment, QList<IMG::Poly> &polys) const
+  const Segment &segment, QList<IMG::Poly> *polys) const
 {
 	if (!seek(hdl, segment.start()))
 		return false;
@@ -205,14 +205,14 @@ bool RGNFile::polyObjects(const RectC &rect, Handle &hdl, const SubDiv *subdiv,
 		if (_lbl && !(labelPtr & 0x800000))
 			poly.label = _lbl->label(labelPtr & 0x3FFFFF);
 
-		polys.append(poly);
+		polys->append(poly);
 	}
 
 	return true;
 }
 
 bool RGNFile::pointObjects(const RectC &rect, Handle &hdl, const SubDiv *subdiv,
-  const Segment &segment, QList<IMG::Point> &points) const
+  const Segment &segment, QList<IMG::Point> *points) const
 {
 	qint16 lon, lat;
 	quint32 labelPtr;
@@ -247,15 +247,15 @@ bool RGNFile::pointObjects(const RectC &rect, Handle &hdl, const SubDiv *subdiv,
 		if (_lbl)
 			point.label = _lbl->label(labelPtr & 0x3FFFFF);
 
-		points.append(point);
+		points->append(point);
 	}
 
 	return true;
 }
 
 void RGNFile::objects(const RectC &rect, const SubDiv *subdiv,
-  QList<IMG::Poly> &polygons, QList<IMG::Poly> &lines,
-  QList<IMG::Point> &points) const
+  QList<IMG::Poly> *polygons, QList<IMG::Poly> *lines,
+  QList<IMG::Point> *points) const
 {
 	Handle hdl;
 
@@ -264,13 +264,16 @@ void RGNFile::objects(const RectC &rect, const SubDiv *subdiv,
 		switch (seg.at(i).type()) {
 			case Segment::Point:
 			case Segment::IndexedPoint:
-				pointObjects(rect, hdl, subdiv, seg.at(i), points);
+				if (points)
+					pointObjects(rect, hdl, subdiv, seg.at(i), points);
 				break;
 			case Segment::Line:
-				polyObjects(rect, hdl, subdiv, seg.at(i), lines);
+				if (lines)
+					polyObjects(rect, hdl, subdiv, seg.at(i), lines);
 				break;
 			case Segment::Polygon:
-				polyObjects(rect, hdl, subdiv, seg.at(i), polygons);
+				if (polygons)
+					polyObjects(rect, hdl, subdiv, seg.at(i), polygons);
 				break;
 		}
 	}
