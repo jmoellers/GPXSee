@@ -432,6 +432,7 @@ bool Style::parseLines(SubFile *file, SubFile::Handle &hdl,
 					img.setColorCount(2);
 					img.setColor(0, qRgba(255, 255, 255, 0));
 					img.setColor(1, c1.rgb());
+
 					if (!readBitmap(file, hdl, img, 1))
 						return false;
 
@@ -682,17 +683,27 @@ const Style::Point &Style::point(quint8 type, quint8 subtype) const
 }
 
 #ifndef QT_NO_DEBUG
+static QString penColor(const QPen &pen)
+{
+	return (pen == Qt::NoPen) ? "None" : pen.color().name();
+}
+
+static QString brushColor(const QBrush &brush)
+{
+	return (brush == Qt::NoBrush) ? "None" : brush.color().name();
+}
+
 QDebug operator<<(QDebug dbg, const Style::Polygon &polygon)
 {
-	dbg.nospace() << "Polygon(" << polygon.brush() << ", " << polygon.pen()
-	  << ")";
+	dbg.nospace() << "Polygon(" << brushColor(polygon.brush()) << ", "
+	  << penColor(polygon.pen()) << ")";
 	return dbg.space();
 }
 
 QDebug operator<<(QDebug dbg, const Style::Line &line)
 {
-	dbg.nospace() << "Line(" << line.foreground() << ", " << line.background()
-	  << ", " << line.img().isNull() << ")";
+	dbg.nospace() << "Line(" << penColor(line.foreground()) << ", "
+	  << penColor(line.background()) << ", " << !line.img().isNull() << ")";
 	return dbg.space();
 }
 #endif // QT_NO_DEBUG
