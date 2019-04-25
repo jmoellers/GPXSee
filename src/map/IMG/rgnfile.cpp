@@ -169,8 +169,8 @@ bool RGNFile::polyObjects(const RectC &rect, Handle &hdl, const SubDiv *subdiv,
 		bool extraBit = labelPtr & 0x400000;
 
 		RectC br;
-		QPoint pos(subdiv->lon() + (lon<<(24-subdiv->bits())),
-		  subdiv->lat() + (lat<<(24-subdiv->bits())));
+		QPoint pos(subdiv->lon() + ((qint32)lon<<(24-subdiv->bits())),
+		  subdiv->lat() + ((qint32)lat<<(24-subdiv->bits())));
 		Coordinates c(toWGS84(pos.x()), toWGS84(pos.y()));
 		br = br.united(c);
 		poly.points.append(c);
